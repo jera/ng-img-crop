@@ -1550,6 +1550,7 @@ crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'crop
       image=null;
       resetCropHost();
       events.trigger('image-updated');
+      
       if(!!imageSource) {
         var newImage = new Image();
         if(imageSource.substring(0,4).toLowerCase()==='http') {
@@ -1559,12 +1560,12 @@ crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'crop
           events.trigger('load-done');
 
           cropEXIF.getData(newImage,function(){
-            var orientation=cropEXIF.getTag(newImage,'Orientation');
+              var orientation=cropEXIF.getTag(newImage,'Orientation');
 
             if([3,6,8].indexOf(orientation)>-1) {
               var canvas = document.createElement("canvas"),
-                  ctx=canvas.getContext("2d"),
-                  cw = newImage.width, ch = newImage.height, cx = 0, cy = 0, deg=0;
+              ctx=canvas.getContext("2d"),
+              cw = newImage.width, ch = newImage.height, cx = 0, cy = 0, deg=0;
               switch(orientation) {
                 case 3:
                   cx=-newImage.width;
@@ -1582,7 +1583,7 @@ crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'crop
                   ch = newImage.width;
                   cx=-newImage.width;
                   deg=270;
-                  break;
+                break;
               }
 
               canvas.width = cw;
@@ -1591,12 +1592,17 @@ crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'crop
               ctx.drawImage(newImage, cx, cy);
 
               image=new Image();
+              image.onload = function() {
+                resetCropHost();
+                events.trigger('image-updated');
+              };
+
               image.src = canvas.toDataURL("image/png");
-            } else {
-              image=newImage;
-            }
-            resetCropHost();
-            events.trigger('image-updated');
+              } else {
+                image=newImage;
+                resetCropHost();
+                events.trigger('image-updated');
+              }
           });
         };
         newImage.onerror=function() {
@@ -1606,7 +1612,7 @@ crop.factory('cropHost', ['$document', 'cropAreaCircle', 'cropAreaSquare', 'crop
         newImage.src=imageSource;
       }
     };
-
+    
     this.setMaxDimensions=function(width, height) {
       maxCanvasDims=[width,height];
 
